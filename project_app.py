@@ -227,6 +227,7 @@ with tab1:
             st.dataframe(pd.DataFrame.from_records(st.session_state.model_history))
             
 with tab2:
+    st.markdown("This tab uses a variational autoencoder to generate new images. Below is a plot of the latent space, from which we can sample to create computer-generated digits.")
     plot_data = get_embeds()
     embed_chart = alt.Chart(plot_data).mark_point(
         opacity=.4,
@@ -245,14 +246,25 @@ with tab2:
     dim2_end = st.number_input("Dim 2 end", value=-1.5)
     dim1 = (dim1_start, dim1_end)
     dim2 = (dim2_start, dim2_end)
-    n = st.slider("Interpolation #", min_value=3, max_value=10, value=5)
+    n = st.slider("Interpolation #", min_value=3, max_value=20, value=10)
 
     if st.button("Generate images"):
         fig, ax = plt.subplots(1,n, figsize=(3*n,3))
         for idx, val in enumerate(zip(np.linspace(*dim1, n), np.linspace(*dim2, n))):
-                ax[idx].imshow(pyt_model.decode(torch.tensor(val).float()).detach().reshape(28,28), cmap='Greys')
-                ax[idx].grid(False)
-                ax[idx].set_xticks([])
-                ax[idx].set_yticks([])
+            ax[idx].imshow(pyt_model.decode(torch.tensor(val).float()).detach().reshape(28,28), cmap='Greys')
+            ax[idx].grid(False)
+            ax[idx].set_xticks([])
+            ax[idx].set_yticks([])
+        plt.tight_layout()
+        st.pyplot(fig)
+
+    if st.button("Generate grid"):
+        fig, ax = plt.subplots(n,n, figsize=(3*n,3*n))
+        for iidx, ival in enumerate(np.linspace(*dim1, n)):
+            for jidx, jval in enumerate(np.linspace(*dim2, n)):
+                ax[jidx, iidx].imshow(pyt_model.decode(torch.tensor((ival, jval)).float()).detach().reshape(28,28), cmap='Greys')
+                ax[jidx, iidx].grid(False)
+                ax[jidx, iidx].set_xticks([])
+                ax[jidx, iidx].set_yticks([])
         plt.tight_layout()
         st.pyplot(fig)
